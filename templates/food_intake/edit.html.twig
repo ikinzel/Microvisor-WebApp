@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit food entry - MicroVisor{% endblock %}
+
+{% block body %}
+    <h2 class="dash-welcome">Edit food entry</h2>
+
+    {% for message in app.flashes('success') %}
+        <p class="form-success">{{ message }}</p>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <p class="form-error">{{ message }}</p>
+    {% endfor %}
+
+    <div class="form-container form-container--wide" style="max-width: 560px;">
+        <p class="form-subtitle" style="text-align:left;">
+            {{ intake.srcName ?? ('FDC #' ~ intake.srcId) }}
+            <span style="color:#666;"> · FDC id {{ intake.srcId }}</span>
+        </p>
+
+        <form method="post" action="{{ path('app_food_intake_edit', { id: intake.id }) }}">
+            <input type="hidden" name="_return_view" value="{{ returnView }}">
+            <input type="hidden" name="_return_show_weekends" value="{{ returnShowWeekends }}">
+
+            <div class="form-group">
+                <label for="consumed_at">Date &amp; time</label>
+                <input type="datetime-local" id="consumed_at" name="consumed_at" required
+                       value="{{ intake.createdAt|date('Y-m-d') }}T{{ intake.createdAt|date('H:i') }}">
+            </div>
+
+            <div class="form-group input-with-unit">
+                <div>
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" name="amount" step="any" min="0.0001" required value="{{ intake.amount }}">
+                </div>
+                <div>
+                    <label for="unit">Unit</label>
+                    <select id="unit" name="unit">
+                        <option value="gram" {% if intake.unitValue == 'gram' %}selected{% endif %}>gram</option>
+                        <option value="unit" {% if intake.unitValue == 'unit' %}selected{% endif %}>unit</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="form-btn">Save changes</button>
+            <a href="{{ path('app_home', { view: returnView, date: intake.createdAt|date('Y-m-d'), show_weekends: returnShowWeekends }) }}" style="display:inline-block; margin-left:8px; padding:12px 24px; border-radius:8px; background:#bc6c25; color:#fefae0; text-decoration:none; font-size:16px;">Cancel</a>
+        </form>
+
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid rgba(40, 54, 24, 0.15);">
+
+        <form method="post" action="{{ path('app_food_intake_delete', { id: intake.id }) }}"
+              onsubmit="return confirm('Delete this food entry? This cannot be undone.');">
+            <input type="hidden" name="_return_view" value="{{ returnView }}">
+            <input type="hidden" name="_return_show_weekends" value="{{ returnShowWeekends }}">
+            <button type="submit" class="form-btn" style="background:#7a0000;">Delete entry</button>
+        </form>
+    </div>
+{% endblock %}

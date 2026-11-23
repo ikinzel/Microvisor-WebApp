@@ -1,0 +1,447 @@
+{% extends 'base.html.twig' %}
+
+
+{% block title %}Dashboard - MicroVisor{% endblock %}
+
+{% block body %}
+    {% if isReturning %}
+        <h2 class="dash-welcome">Welcome back, {{ userName }}!</h2>
+    {% else %}
+        <h2 class="dash-welcome">Welcome to MicroVisor, {{ userName }}!</h2>
+    {% endif %}
+
+    {% for message in app.flashes('success') %}
+        <p class="form-success">{{ message }}</p>
+    {% endfor %}
+    {% for message in app.flashes('warning') %}
+        <p class="form-warning">{{ message }}</p>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <p class="form-error">{{ message }}</p>
+    {% endfor %}
+
+    {% set q = { view: viewName, show_weekends: showWeekends ? '1' : '0' } %}
+
+    <section class="cal-shell cal-shell--dark" aria-label="Food intake calendar">
+        <header class="cal-toolbar cal-toolbar--dark">
+            <div class="cal-toolbar-left">
+                <a href="{{ path('app_home', q|merge({ date: prevDate })) }}" class="cal-nav-btn cal-nav-btn--dark" title="Previous" aria-label="Previous">‹</a>
+                <h3 class="cal-title cal-title--dark">{{ rangeTitle }}</h3>
+                <a href="{{ path('app_home', q|merge({ date: nextDate })) }}" class="cal-nav-btn cal-nav-btn--dark" title="Next" aria-label="Next">›</a>
+            </div>
+
+            <div class="cal-toolbar-center">
+                <div class="cal-view-wrap">
+                    <button type="button" class="cal-view-trigger" id="cal-view-trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="cal-view-menu">
+                        <span>{{ viewLabel }}</span>
+                        <span class="cal-view-chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <ul class="cal-view-menu" id="cal-view-menu" role="listbox" hidden>
+                        {% for opt in viewOptions %}
+                            <li role="option" onclick="window.location.href='{{ path('app_home', q|merge({ view: opt.value, date: anchorDate })) }}';" style="cursor: pointer;">
+                                <span class="cal-view-item{% if opt.value == viewName %} cal-view-item--active{% endif %}">
+                                    <span>{{ opt.label }}</span>
+                                    <kbd class="cal-view-kbd">{{ opt.shortcut }}</kbd>
+                                </span>
+                            </li>
+                        {% endfor %}
+                        <li style="border-top: 1px solid #ccc; margin: 8px 0;"></li>
+                        <li role="option" onclick="window.location.href='{{ path('app_home', q|merge({ date: anchorDate, show_weekends: showWeekends ? 0 : 1 })) }}';" style="cursor: pointer;">
+                            <span class="cal-view-item cal-view-item--toggle">
+                                <span>Show weekends</span>
+                                {% if showWeekends %}<span class="cal-view-check" aria-hidden="true">✓</span>{% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="cal-toolbar-right">
+                <form method="get" action="{{ path('app_home') }}" class="cal-month-form cal-month-form--dark" data-date-picker-form>
+                    <input type="hidden" name="view" value="{{ viewName }}">
+                    <input type="hidden" name="show_weekends" value="{{ showWeekends ? '1' : '0' }}">
+                    <label for="date-picker" class="cal-month-label cal-month-label--dark">Day</label>
+                    <input type="date" id="date-picker" name="date" value="{{ anchorDate }}" data-date-picker>
+                    <button type="submit" class="cal-go-btn cal-go-btn--dark">Go</button>
+                </form>
+                <a href="{{ path('app_home', q|merge({ date: 'now'|date('Y-m-d') })) }}" class="cal-today-btn cal-today-btn--dark">Today</a>
+            </div>
+        </header>
+
+        {% if viewName == 'week' %}
+            <div class="cal-strip cal-strip--dark">
+                {% for col in weekColumns %}
+                    <div class="cal-strip-col{% if col.isToday %} cal-strip-col--today{% endif %}{% if col.isSelected %} cal-strip-col--selected{% endif %}">
+                        <div class="cal-strip-head">
+                            <a href="{{ path('app_home', q|merge({ date: col.dateKey })) }}" class="cal-strip-head-link" aria-label="Select {{ col.label }} for new food entries"{% if col.isSelected %} aria-current="date"{% endif %}>
+                                {{ col.label }}
+                            </a>
+                            {% if col.isSelected %}
+                                <span class="cal-selected-badge">Selected</span>
+                            {% endif %}
+                        </div>
+                        <ul class="cal-events">
+                            {% for intake in col.items %}
+                                {% include 'home/_intake_event.html.twig' %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="cal-day-full cal-day-full--dark{% if anchorDate == todayKey %} cal-day-full--today{% endif %}">
+                <p class="cal-day-full-date">{{ anchorDate|date('l, F j, Y') }}</p>
+                <ul class="cal-events cal-events--large">
+                    {% for intake in dayItems %}
+                        {% include 'home/_intake_event.html.twig' %}
+                    {% endfor %}
+                </ul>
+                {% if dayItems is empty %}
+                    <p class="cal-empty">No food logged this day.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    <section aria-labelledby="add-food-heading" style="margin-top: 24px;">
+        <h3 id="add-food-heading" class="dash-section-title">Add food for {{ anchorDate|date('l, F j, Y') }}</h3>
+        <p class="food-intro">Log what you ate using FoodData Central (<a href="https://fdc.nal.usda.gov/api-guide" target="_blank" rel="noopener noreferrer">USDA API</a>). Choose manual entry or upload a receipt: we extract lines with vision, match each to USDA, then you confirm amounts and units before anything is saved.</p>
+
+        <div class="food-mode-tabs">
+            <section class="food-panel" aria-labelledby="manual-heading">
+                <h3 id="manual-heading">Manual</h3>
+                <p>Search by food name, then pick from up to 5 USDA matches.</p>
+                <form method="post" action="{{ path('app_food_input') }}" class="food-form" data-loading-message="Saving intake…">
+                    <input type="hidden" name="_action" value="manual">
+                    <input type="hidden" name="consumed_date" value="{{ anchorDate }}">
+                    <input type="hidden" name="_return_view" value="{{ viewName }}">
+                    <input type="hidden" name="_return_show_weekends" value="{{ showWeekends ? '1' : '0' }}">
+                    <div class="form-group">
+                        <label for="food_name">Food name (search)</label>
+                        <input type="text" id="food_name" name="food_name" required placeholder="e.g. Greek yogurt plain" autocomplete="off">
+                    </div>
+                    <div class="form-group input-with-unit">
+                        <div>
+                            <label for="amount">Amount</label>
+                            <input type="number" id="amount" name="amount" step="any" min="0.0001" required placeholder="e.g. 150">
+                        </div>
+                        <div>
+                            <label for="unit">Unit</label>
+                            <select id="unit" name="unit">
+                                <option value="gram">gram</option>
+                                <option value="unit">unit</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="form-btn">Search for Food</button>
+                </form>
+
+                {% set pendingFoods = app.session.get('_pending_foods') %}
+                {% if pendingFoods and pendingFoods.foods|length > 0 %}
+                    <div class="food-selection">
+                        <h4>Select Food: "{{ pendingFoods.foodName }}"</h4>
+                        <form method="post" action="{{ path('app_food_input_confirm') }}">
+                            {% for food in pendingFoods.foods %}
+                                <div class="food-option" onclick="document.getElementById('fdc_{{ loop.index0 }}').checked = true">
+                                    <input type="radio" id="fdc_{{ loop.index0 }}" name="selected_fdc_id" value="{{ food.fdcId }}" required>
+                                    <label for="fdc_{{ loop.index0 }}">{{ food.description }}</label>
+                                </div>
+                            {% endfor %}
+
+                            <input type="hidden" name="food_name" value="{{ pendingFoods.foodName }}">
+                            <input type="hidden" name="amount" value="{{ pendingFoods.amount }}">
+                            <input type="hidden" name="unit" value="{{ pendingFoods.unit.value }}">
+                            <input type="hidden" name="consumed_date" value="{{ pendingFoods.targetDate.format('Y-m-d') }}">
+                            <input type="hidden" name="_return_view" value="{{ pendingFoods.returnView }}">
+                            <input type="hidden" name="_return_show_weekends" value="{{ pendingFoods.returnShowWeekends }}">
+
+                            <button type="submit" class="form-btn">Save with Selected Food</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="food-panel" aria-labelledby="receipt-heading">
+                <h3 id="receipt-heading">Receipt (upload)</h3>
+                <p>Upload a receipt image. We extract lines with vision, match each to FoodData Central, then show a screen where you can edit amounts and units before saving.</p>
+                <form method="post" action="{{ path('app_food_input') }}" enctype="multipart/form-data" class="food-form" data-loading-message="Scanning receipt…">
+                    <input type="hidden" name="_action" value="receipt">
+                    <input type="hidden" name="consumed_date" value="{{ anchorDate }}">
+                    <input type="hidden" name="_return_view" value="{{ viewName }}">
+                    <input type="hidden" name="_return_show_weekends" value="{{ showWeekends ? '1' : '0' }}">
+                    <div class="form-group">
+                        <label for="receipt">Receipt image</label>
+                        <input type="file" id="receipt" name="receipt" accept="image/jpeg,image/png,image/webp" required>
+                    </div>
+                    <button type="submit" class="form-btn">Scan receipt</button>
+                </form>
+            </section>
+        </div>
+
+        <div id="food-input-loading" class="food-input-loading" hidden data-food-loading-overlay>
+            <div class="food-input-loading__panel" role="status" aria-live="polite">
+                <div class="food-input-loading__bar-track" aria-hidden="true">
+                    <div class="food-input-loading__bar"></div>
+                </div>
+                <p class="food-input-loading__text" data-food-loading-msg>Working…</p>
+            </div>
+        </div>
+    </section>
+
+    {% if recs is defined and recs.micronutrients is defined %}
+        {% set pretty = {
+            'vitamin_a':'Vitamin A',
+            'vitamin_c':'Vitamin C',
+            'vitamin_d':'Vitamin D',
+            'vitamin_e':'Vitamin E',
+            'vitamin_k':'Vitamin K',
+            'thiamin':'Thiamin (B1)',
+            'riboflavin':'Riboflavin (B2)',
+            'niacin':'Niacin (B3)',
+            'vitamin_b6':'Vitamin B6',
+            'folate':'Folate',
+            'vitamin_b12':'Vitamin B12',
+            'pantothenic_acid':'Pantothenic acid (B5)',
+            'biotin':'Biotin (B7)',
+            'choline':'Choline',
+            'calcium':'Calcium',
+            'chloride':'Chloride',
+            'chromium':'Chromium',
+            'fluoride':'Fluoride',
+            'iron':'Iron',
+            'magnesium':'Magnesium',
+            'manganese':'Manganese',
+            'potassium':'Potassium',
+            'zinc':'Zinc'
+        } %}
+
+        <section class="food-panel" style="padding: 16px; margin-top: 24px;" aria-labelledby="progress-heading" data-progress-section data-progress-date="{{ anchorDate }}" data-today-key="{{ todayKey }}" data-selected-date-label="{{ anchorDate|date('l, F j, Y') }}">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap;">
+                <h3 id="progress-heading" style="margin: 0;" data-progress-heading>Today's progress</h3>
+                <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="form-btn" style="width:auto; margin-top:0;" data-progress-week>Check your weekly progress</button>
+                    <button type="button" class="form-btn" style="width:auto; margin-top:0;" data-progress-refresh>Refresh</button>
+                </div>
+            </div>
+
+            <p class="form-subtitle" style="text-align:left; margin: 10px 0 14px;" data-progress-subtitle>
+                Based on the foods you logged today.
+            </p>
+
+            <div class="form-warning" hidden data-progress-warning></div>
+
+            <div class="nutri-progress-grid" data-progress-grid>
+                {% for key, item in recs.micronutrients %}
+                    {% set isHighlighted = disease and disease.intakeSuggestions and disease.intakeSuggestions[key] is defined %}
+                    <div class="nutri-progress-row{% if isHighlighted %} nutri-progress-row--highlighted{% endif %}" data-progress-row="{{ key }}">
+                        <div class="nutri-progress-label">
+                            <span class="nutri-progress-name">{{ pretty[key]|default(key|replace({'_':' '})|title) }}</span>
+                            <span class="nutri-progress-values">
+                                <span data-progress-consumed>0</span> / <span data-progress-target>{{ item.value }}</span> <span data-progress-unit>{{ item.unit }}</span>
+                            </span>
+                        </div>
+                        <div class="nutri-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                            <div class="nutri-progress-bar__fill" style="width: 0%;" data-progress-fill></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <script>
+    (function () {
+        var datePicker = document.querySelector('[data-date-picker]');
+        if (datePicker) {
+            datePicker.addEventListener('change', function () {
+                if (datePicker.form) datePicker.form.submit();
+            });
+        }
+
+        var trigger = document.getElementById('cal-view-trigger');
+        var menu = document.getElementById('cal-view-menu');
+        if (!trigger || !menu) return;
+        /*
+         * Closes the view options dropdown menu.
+         */
+        function close() {
+            menu.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+        /*
+         * Toggles the view options dropdown menu open/closed.
+         */
+        function toggle() {
+            var open = menu.hidden;
+            menu.hidden = !open;
+            trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggle();
+        });
+        document.addEventListener('click', close);
+        menu.addEventListener('click', function (e) { e.stopPropagation(); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+            var map = { d: 'day', w: 'week' };
+            var k = e.key.toLowerCase();
+            if (map[k] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                var u = new URL(window.location.href);
+                u.searchParams.set('view', map[k]);
+                if (!u.searchParams.get('date')) u.searchParams.set('date', {{ anchorDate|json_encode|raw }});
+                window.location.href = u.toString();
+            }
+        });
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var overlay = document.querySelector('[data-food-loading-overlay]');
+        var msgEl = document.querySelector('[data-food-loading-msg]');
+        document.querySelectorAll('form.food-form').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                var btn = form.querySelector('button[type="submit"]');
+                if (btn) btn.disabled = true;
+                if (msgEl) msgEl.textContent = form.getAttribute('data-loading-message') || 'Working…';
+                if (overlay) {
+                    overlay.hidden = false;
+                    overlay.setAttribute('aria-hidden', 'false');
+                }
+            });
+        });
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var progressSection = document.querySelector('[data-progress-section]');
+        if (!progressSection || !document.querySelector('[data-progress-grid]')) return;
+        var progressRange = 'day';
+        var progressDate = progressSection.getAttribute('data-progress-date') || '';
+        var todayKey = progressSection.getAttribute('data-today-key') || '';
+        var selectedDateLabel = progressSection.getAttribute('data-selected-date-label') || progressDate;
+
+        function roundDisplay(val) {
+            if (typeof val !== 'number' || !isFinite(val)) return '0';
+            if (Math.abs(val) >= 100) return String(Math.round(val));
+            if (Math.abs(val) >= 10) return (Math.round(val * 10) / 10).toFixed(1);
+            return (Math.round(val * 100) / 100).toFixed(2);
+        }
+
+        function updateProgressText(range) {
+            var heading = document.querySelector('[data-progress-heading]');
+            var subtitle = document.querySelector('[data-progress-subtitle]');
+            var weekBtn = document.querySelector('[data-progress-week]');
+
+            if (range === 'week') {
+                if (heading) heading.textContent = 'Weekly progress';
+                if (subtitle) subtitle.textContent = 'Based on the foods you logged this week. Weekly targets are your daily goals multiplied by 7.';
+                if (weekBtn) weekBtn.textContent = progressDate === todayKey ? "Check today's progress" : 'Check daily progress';
+                return;
+            }
+
+            if (progressDate === todayKey) {
+                if (heading) heading.textContent = "Today's progress";
+                if (subtitle) subtitle.textContent = 'Based on the foods you logged today.';
+            } else {
+                if (heading) heading.textContent = 'Daily progress';
+                if (subtitle) subtitle.textContent = 'Based on the foods you logged on ' + selectedDateLabel + '.';
+            }
+            if (weekBtn) weekBtn.textContent = 'Check your weekly progress';
+        }
+
+        /*
+         * Fetches nutrition progress data from the API.
+         * Updates progress bars and nutrient values based on response.
+         * Handles errors and authentication failures gracefully.
+         */
+        async function loadProgress() {
+            var warningBox = document.querySelector('[data-progress-warning]');
+            if (warningBox) { warningBox.hidden = true; warningBox.textContent = ''; }
+
+            var res;
+            try {
+                var url = '/api/profile/progress?range=' + encodeURIComponent(progressRange);
+                if (progressDate) {
+                    url += '&date=' + encodeURIComponent(progressDate);
+                }
+                res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            } catch (e) {
+                if (warningBox) { warningBox.hidden = false; warningBox.textContent = 'Could not load progress (network error).'; }
+                return;
+            }
+
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            if (!res.ok) {
+                if (warningBox) { warningBox.hidden = false; warningBox.textContent = 'Could not load progress (server error).'; }
+                return;
+            }
+
+            var data = await res.json();
+            var consumed = data.consumed || {};
+            var percent = data.percent || {};
+            var recommended = data.recommended || {};
+
+            Object.keys(percent).forEach(function (key) {
+                var row = document.querySelector('[data-progress-row="' + key + '"]');
+                if (!row) return;
+
+                var got = consumed[key] ? consumed[key].value : 0;
+                var pct = percent[key] || 0;
+                var pctClamped = Math.max(0, Math.min(100, pct));
+                var target = recommended[key] ? recommended[key].value : null;
+                var unit = recommended[key] ? recommended[key].unit : null;
+
+                var fill = row.querySelector('[data-progress-fill]');
+                var valEl = row.querySelector('[data-progress-consumed]');
+                var targetEl = row.querySelector('[data-progress-target]');
+                var unitEl = row.querySelector('[data-progress-unit]');
+                var bar = row.querySelector('.nutri-progress-bar');
+
+                if (valEl) valEl.textContent = roundDisplay(got);
+                if (targetEl && target !== null) targetEl.textContent = roundDisplay(Number(target));
+                if (unitEl && unit !== null) unitEl.textContent = unit;
+                if (fill) {
+                    fill.style.width = pctClamped.toFixed(1) + '%';
+                    if (pctClamped < 30) {
+                        fill.style.backgroundColor = '#c0392b';
+                    } else if (pctClamped < 60) {
+                        fill.style.backgroundColor = '#f39c12';
+                    } else {
+                        fill.style.backgroundColor = '#27ae60';
+                    }
+                }
+                if (bar) bar.setAttribute('aria-valuenow', String(Math.round(pctClamped)));
+            });
+
+            if (data.warnings && data.warnings.length && warningBox) {
+                warningBox.hidden = false;
+                warningBox.textContent = data.warnings.join(' ');
+            }
+        }
+
+        var btn = document.querySelector('[data-progress-refresh]');
+        if (btn) btn.addEventListener('click', loadProgress);
+
+        var weekBtn = document.querySelector('[data-progress-week]');
+        if (weekBtn) {
+            weekBtn.addEventListener('click', function () {
+                progressRange = progressRange === 'week' ? 'day' : 'week';
+                updateProgressText(progressRange);
+                loadProgress();
+            });
+        }
+
+        updateProgressText(progressRange);
+        loadProgress();
+    })();
+    </script>
+
+{% endblock %}

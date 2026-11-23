@@ -1,0 +1,127 @@
+{% extends 'base_v2.html.twig' %}
+
+
+{% block title %}Dashboard - MicroVisor{% endblock %}
+
+{% block body %}
+    {% if isReturning %}
+        <h2 class="dash-welcome">Welcome back, {{ userName }}!</h2>
+    {% else %}
+        <h2 class="dash-welcome">Welcome to MicroVisor, {{ userName }}!</h2>
+    {% endif %}
+
+    {% set q = { view: viewName, show_weekends: showWeekends ? '1' : '0' } %}
+
+    <section class="cal-shell cal-shell--dark" aria-label="Food intake calendar">
+        <header class="cal-toolbar cal-toolbar--dark">
+            <div class="cal-toolbar-left">
+                <a href="{{ path('app_home', q|merge({ date: prevDate })) }}" class="cal-nav-btn cal-nav-btn--dark" title="Previous" aria-label="Previous">‹</a>
+                <h3 class="cal-title cal-title--dark">{{ rangeTitle }}</h3>
+                <a href="{{ path('app_home', q|merge({ date: nextDate })) }}" class="cal-nav-btn cal-nav-btn--dark" title="Next" aria-label="Next">›</a>
+            </div>
+
+            <div class="cal-toolbar-center">
+                <div class="cal-view-wrap">
+                    <button type="button" class="cal-view-trigger" id="cal-view-trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="cal-view-menu">
+                        <span>{{ viewLabel }}</span>
+                        <span class="cal-view-chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <ul class="cal-view-menu" id="cal-view-menu" role="listbox" hidden>
+                        {% for opt in viewOptions %}
+                            <li role="option">
+                                <a href="{{ path('app_home', q|merge({ view: opt.value, date: anchorDate })) }}" class="cal-view-item{% if opt.value == viewName %} cal-view-item--active{% endif %}">
+                                    <span>{{ opt.label }}</span>
+                                    <kbd class="cal-view-kbd">{{ opt.shortcut }}</kbd>
+                                </a>
+                            </li>
+                        {% endfor %}
+                        <li class="cal-view-divider" role="separator"></li>
+                        <li>
+                            <a href="{{ path('app_home', q|merge({ date: anchorDate, show_weekends: showWeekends ? 0 : 1 })) }}" class="cal-view-item cal-view-item--toggle">
+                                <span>Show weekends</span>
+                                {% if showWeekends %}<span class="cal-view-check" aria-hidden="true">✓</span>{% endif %}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="cal-toolbar-right">
+                <form method="get" action="{{ path('app_home') }}" class="cal-month-form cal-month-form--dark">
+                    <input type="hidden" name="view" value="{{ viewName }}">
+                    <input type="hidden" name="show_weekends" value="{{ showWeekends ? '1' : '0' }}">
+                    <label for="month-picker" class="cal-month-label cal-month-label--dark">Month</label>
+                    <input type="month" id="month-picker" name="month" value="{{ monthValue }}">
+                    <button type="submit" class="cal-go-btn cal-go-btn--dark">Go</button>
+                </form>
+                <a href="{{ path('app_home', q|merge({ date: 'now'|date('Y-m-d') })) }}" class="cal-today-btn cal-today-btn--dark">Today</a>
+            </div>
+        </header>
+
+        {% if viewName == 'week' %}
+            <div class="cal-strip cal-strip--dark">
+                {% for col in weekColumns %}
+                    <div class="cal-strip-col{% if col.isToday %} cal-strip-col--today{% endif %}">
+                        <div class="cal-strip-head">{{ col.label }}</div>
+                        <ul class="cal-events">
+                            {% for intake in col.items %}
+                                {% include 'home/_intake_event_v2.html.twig' %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="cal-day-full cal-day-full--dark{% if anchorDate == todayKey %} cal-day-full--today{% endif %}">
+                <p class="cal-day-full-date">{{ anchorDate|date('l, F j, Y') }}</p>
+                <ul class="cal-events cal-events--large">
+                    {% for intake in dayItems %}
+                        {% include 'home/_intake_event_v2.html.twig' %}
+                    {% endfor %}
+                </ul>
+                {% if dayItems is empty %}
+                    <p class="cal-empty">No food logged this day.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    <p class="dash-footnote">Food entries by view. <a href="{{ path('app_food_input') }}">Add food</a></p>
+
+    <script>
+    (function () {
+        var trigger = document.getElementById('cal-view-trigger');
+        var menu = document.getElementById('cal-view-menu');
+        if (!trigger || !menu) return;
+        function close() {
+            menu.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+        function toggle() {
+            var open = menu.hidden;
+            menu.hidden = !open;
+            trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggle();
+        });
+        document.addEventListener('click', close);
+        menu.addEventListener('click', function (e) { e.stopPropagation(); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) return;
+            var map = { d: 'day', w: 'week' };
+            var k = e.key.toLowerCase();
+            if (map[k] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                var u = new URL(window.location.href);
+                u.searchParams.set('view', map[k]);
+                if (!u.searchParams.get('date')) u.searchParams.set('date', {{ anchorDate|json_encode|raw }});
+                window.location.href = u.toString();
+            }
+        });
+    })();
+    </script>
+
+{% endblock %}

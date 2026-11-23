@@ -1,0 +1,35 @@
+{
+  "description": "Albert Heijn Zandvoort (NL) — Dutch receipt lines; usdaSearch in English for USDA",
+  "items": [
+    {
+      "name": "OLIJVEN",
+      "usdaSearch": "olives canned",
+      "weight": null
+    },
+    {
+      "name": "AH SAP MNG S",
+      "usdaSearch": "mango juice",
+      "weight": null
+    },
+    {
+      "name": "FUJI APPEL",
+      "usdaSearch": "fuji apples raw",
+      "weight": { "value": 0.21, "unit": "kg" }
+    },
+    {
+      "name": "VIT TREATIES",
+      "usdaSearch": "dog treats",
+      "weight": null
+    },
+    {
+      "name": "AARDBEIEN",
+      "usdaSearch": "strawberries raw",
+      "weight": null
+    },
+    {
+      "name": "CHIQUITA",
+      "usdaSearch": "bananas raw",
+      "weight": { "value": 0.625, "unit": "kg" }
+    }
+  ]
+}

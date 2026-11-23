@@ -1,0 +1,260 @@
+{% extends 'auth_base.html.twig' %}
+
+{% block title %}Register - MicroVisor{% endblock %}
+
+{% block body %}
+<main class="auth-shell">
+    <div class="form-container form-container--wide">
+        <h2 class="form-title">Register</h2>
+        <p class="form-subtitle">Register to start tracking your micronutrients</p>
+
+        {% if error is defined and error %}
+            <p class="form-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="/register" novalidate>
+            <div class="form-row form-row--two">
+                <div class="form-group">
+                    <label for="firstName">First name</label>
+                    <input type="text" id="firstName" name="firstName" >
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last name</label>
+                    <input type="text" id="lastName" name="lastName" >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-input">
+                    <input type="password" id="password" name="password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" style="display:none;"/>
+                            <circle class="eye-open" cx="12" cy="12" r="3" style="display:none;"/>
+                            <path class="eye-closed" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                            <path class="eye-closed" d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                            <line class="eye-closed" x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm password</label>
+                <div class="password-input">
+                    <input type="password" id="confirmPassword" name="confirmPassword">
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" style="display:none;"/>
+                            <circle class="eye-open" cx="12" cy="12" r="3" style="display:none;"/>
+                            <path class="eye-closed" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                            <path class="eye-closed" d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                            <line class="eye-closed" x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-row form-row--metrics">
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" min="1" max="120" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight</label>
+                    <div class="field-with-unit">
+                        <input type="number" id="weight" name="weight" step="0.1" min="0" inputmode="decimal">
+                        <label for="weightUnit" style="display: none;">Weight unit</label>
+                        <select id="weightUnit" name="weightUnit" aria-label="Weight unit">
+                            <option value="kg">kg</option>
+                            <option value="lbs">lbs</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="height">Height</label>
+                    <div class="field-with-unit" data-height-wrapper>
+                        <input
+                            type="number" id="height" name="height"
+                            step="0.1" min="0" inputmode="decimal"
+                            data-height-cm
+                        >
+                        <div class="field-with-unit__ft" hidden data-height-ft-group style="display:none; gap:6px; flex:1;">
+                            <label for="heightFt" style="display: none;">Feet</label>
+                            <input
+                                type="number" id="heightFt" name="heightFt"
+                                step="1" min="0" inputmode="numeric"
+                                placeholder="ft"
+                                data-height-ft
+                            >
+                            <label for="heightIn" style="display: none;">Inches</label>
+                            <input
+                                type="number" id="heightIn" name="heightIn"
+                                step="1" min="0" max="11" inputmode="numeric"
+                                placeholder="in"
+                                data-height-in
+                            >
+                        </div>
+                        <label for="heightUnit" style="display: none;">Height unit</label>
+                        <select id="heightUnit" name="heightUnit" aria-label="Height unit" data-height-unit>
+                            <option value="cm" selected>cm</option>
+                            <option value="ft">ft</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <button type="submit" class="form-btn">Sign Up</button>
+        </form>
+    </div>
+
+
+    {# CLIENT SIDE VALIDATION #}
+
+    <script>
+    /*
+     * Validates form before submission and displays errors to users.
+     *
+     * This validation runs on the client side before sending data to the server
+     * It checks for:
+     * -Required fields
+     * -Email visibility format
+     * -Password strength and matching
+     * -Age range
+     * -Weight and height are positive numbers
+     * -Height validity based on selected unit
+     *
+     * If validation fails, errors are displayed above the form and form submission is prevented.
+     * The server (RegistrationController) will perform its own validation as a security measure.
+     *
+     */
+
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const age = parseInt(document.getElementById('age').value, 10);
+    const weight = parseFloat(document.getElementById('weight').value);
+    const heightUnit = document.getElementById('heightUnit').value;
+
+    let errors = [];
+
+    if (!firstName) errors.push('First name is required');
+    if (!lastName) errors.push('Last name is required');
+    if (!email) errors.push('Email is required');
+    else if (!email.includes("@")) errors.push('Please use a valid email format');
+    if (!password) errors.push('Password is required');
+    if (password !== confirmPassword) errors.push('Passwords do not match');
+    if (password.length <= 6) errors.push('Please enter a password with more than 6 characters. ');
+    if (!age) errors.push('Age is required');
+    else if (age <= 0 || age > 120) errors.push('Age must be between 1 and 120');
+    if (!weight || weight <= 0) errors.push('Weight must be a positive number');
+    if (heightUnit === 'cm') {
+        const height = parseFloat(document.getElementById('height').value);
+        if (!height || height <= 0) errors.push('Height must be a positive number');
+    } else {
+        const ft = parseFloat(document.getElementById('heightFt').value);
+        const inch = parseFloat(document.getElementById('heightIn').value);
+        const ftNum = isNaN(ft) ? 0 : ft;
+        const inNum = isNaN(inch) ? 0 : inch;
+        const totalInches = ftNum * 12 + inNum;
+        if (totalInches <= 0) errors.push('Height must be a positive number');
+    }
+
+    if (errors.length > 0) {
+        e.preventDefault();
+        let errorBox = document.querySelector('.form-error');
+        if (!errorBox) {
+            errorBox = document.createElement('p');
+            errorBox.className = 'form-error';
+            document.querySelector('.form-subtitle').after(errorBox);
+        }
+        errorBox.innerHTML = errors.join('<br>');
+    }
+});
+
+
+ /*
+  * Dynamically switches between height input methods
+  *
+  * When a user selects a different unit from the height unit dropdown,
+  * this IIFE hides and shows appropriate input fields:
+  * -"cm" selected: show single cm input, hide ft/in inputs
+  * - "ft" selected : show ft and in inputs, hide cm input
+  */
+(function () {
+    var unitSel = document.querySelector('[data-height-unit]');
+    var cmInput = document.querySelector('[data-height-cm]');
+    var ftGroup = document.querySelector('[data-height-ft-group]');
+    if (!unitSel || !cmInput || !ftGroup) return;
+
+    function applyUnit() {
+        if (unitSel.value === 'ft') {
+            cmInput.hidden = true;
+            cmInput.required = false;
+            ftGroup.hidden = false;
+            ftGroup.style.display = 'flex';
+        } else {
+            cmInput.hidden = false;
+            cmInput.required = true;
+            ftGroup.hidden = true;
+            ftGroup.style.display = 'none';
+        }
+    }
+
+    unitSel.addEventListener('change', applyUnit);
+    applyUnit();
+})();
+</script>
+</main>
+
+
+<script>
+
+
+/*  * Toggles password field visibility between hidden (dots) and visible (plain text).
+    *
+    * When called, this function switches the password input field between two states:
+    * - Hidden state: type="password" with a closed eye icon
+    * - Visible state: type="text"  with an open eye icon
+    *
+    * The eye icon consists of SVG paths with two CSS classes:
+    * - ".eye-open" paths are shown when password is visible
+    * - ".eye-closed" paths are shown when password is hidden
+    **/
+    function togglePassword(fieldId) {
+        const input = document.getElementById(fieldId);
+        const btn = input.closest('.password-input');
+        const openParts = btn.querySelectorAll('.eye-open');
+        const closedParts = btn.querySelectorAll('.eye-closed');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            openParts.forEach(p => p.style.display = 'inline');
+            closedParts.forEach(p => p.style.display = 'none');
+        } else {
+            input.type = 'password';
+            openParts.forEach(p => p.style.display = 'none');
+            closedParts.forEach(p => p.style.display = 'inline');
+        }
+    }
+    </script>
+{% endblock %}

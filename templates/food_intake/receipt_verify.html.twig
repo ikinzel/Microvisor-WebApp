@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Verify receipt — MicroVisor{% endblock %}
+
+{% block body %}
+    <h2>Verify receipt lines</h2>
+    <p class="food-intro">Each line was read from your receipt and matched to <a href="https://fdc.nal.usda.gov/api-guide" target="_blank" rel="noopener noreferrer">FoodData Central</a>. Uncheck items you do not want to log, adjust amount or unit, then save.</p>
+    {% if targetDate is defined %}
+        <p class="form-subtitle" style="text-align:left;">These items will be logged for {{ targetDate|date('l, F j, Y') }}.</p>
+    {% endif %}
+
+    {% for message in app.flashes('success') %}
+        <p class="form-success">{{ message }}</p>
+    {% endfor %}
+    {% for message in app.flashes('warning') %}
+        <p class="form-warning">{{ message }}</p>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <p class="form-error">{{ message }}</p>
+    {% endfor %}
+
+    <form method="post" action="{{ path('app_food_receipt_verify') }}" class="receipt-verify-form" novalidate>
+        <div class="receipt-verify-table-wrap">
+            <table class="receipt-verify-table">
+                <thead>
+                    <tr>
+                        <th scope="col" class="receipt-verify-col-include">Include</th>
+                        <th scope="col">Receipt line</th>
+                        <th scope="col">USDA match</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in rows %}
+                    <tr class="{% if row.fdcId is null %}receipt-verify-row--unmatched{% endif %}">
+                        <td class="receipt-verify-col-include">
+                            <input type="hidden" name="rows[{{ loop.index0 }}][include]" value="0">
+                            <input type="checkbox" name="rows[{{ loop.index0 }}][include]" value="1"
+                                {% if row.fdcId %}checked{% endif %}
+                                {% if row.fdcId is null %}disabled aria-disabled="true"{% endif %}
+                                aria-label="Include line {{ loop.index }}: {{ row.ocrName }}">
+                        </td>
+                        <td title="USDA search: {{ row.usdaSearch|default(row.ocrName) }}">{{ row.ocrName }}</td>
+                        <td>
+                            {% if row.fdcId %}
+                                <a href="{{ fdc_food_url(row.fdcId) }}" target="_blank" rel="noopener noreferrer" class="receipt-verify-fdc-link">{{ row.fdcName }}</a>
+                            {% else %}
+                                <span class="receipt-verify-no-match">No USDA match</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <input type="number" name="rows[{{ loop.index0 }}][amount]" step="any" min="0.0001"
+                                class="receipt-verify-amount"
+                                value="{{ row.amount }}"
+                                {% if row.fdcId is null %}disabled{% endif %}
+                                aria-label="Amount for {{ row.ocrName }}">
+                        </td>
+                        <td>
+                            <select name="rows[{{ loop.index0 }}][unit]" class="receipt-verify-unit"
+                                {% if row.fdcId is null %}disabled{% endif %}
+                                aria-label="Unit for {{ row.ocrName }}">
+                                <option value="gram" {% if row.unit == 'gram' %}selected{% endif %}>gram</option>
+                                <option value="unit" {% if row.unit == 'unit' %}selected{% endif %}>unit</option>
+                            </select>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="receipt-verify-actions">
+            <button type="submit" class="form-btn">Save selected to intake</button>
+            <a href="{{ path('app_food_receipt_cancel') }}" class="receipt-verify-cancel">Cancel</a>
+        </div>
+    </form>
+{% endblock %}

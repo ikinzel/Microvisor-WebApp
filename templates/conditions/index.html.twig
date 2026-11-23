@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+{% block title %}Medical conditions - MicroVisor{% endblock %}
+{% block body %}
+    {% set nutrient_labels = {
+        'vitamin_a':'Vitamin A',
+        'vitamin_c':'Vitamin C',
+        'vitamin_d':'Vitamin D',
+        'vitamin_e':'Vitamin E',
+        'vitamin_k':'Vitamin K',
+        'thiamin':'Thiamin (B1)',
+        'riboflavin':'Riboflavin (B2)',
+        'niacin':'Niacin (B3)',
+        'vitamin_b6':'Vitamin B6',
+        'folate':'Folate',
+        'vitamin_b12':'Vitamin B12',
+        'pantothenic_acid':'Pantothenic acid (B5)',
+        'biotin':'Biotin (B7)',
+        'choline':'Choline',
+        'calcium':'Calcium',
+        'chloride':'Chloride',
+        'chromium':'Chromium',
+        'fluoride':'Fluoride',
+        'iron':'Iron',
+        'magnesium':'Magnesium',
+        'manganese':'Manganese',
+        'potassium':'Potassium',
+        'zinc':'Zinc',
+        'iodine':'Iodine'
+    } %}
+
+    <h2 class="dash-welcome">Medical conditions</h2>
+    <div class="form-container form-container--wide" style="max-width: 900px;">
+        <p class="form-subtitle" style="text-align:left;">
+            Optionally select a condition to see <strong>general dietary intake suggestions</strong> linked to common micronutrients.
+            Your numeric daily targets on Profile stay based on age and sex only—they are <strong>not</strong> auto-adjusted from this page.
+            Discuss any changes with a clinician or dietitian; this is educational, not medical advice.
+        </p>
+        {% if error %}
+            <p class="form-error">{{ error }}</p>
+        {% endif %}
+        {% if success %}
+            <p class="form-success">{{ success }}</p>
+        {% endif %}
+
+        <form method="POST" action="{{ path('app_conditions') }}" class="conditions-form">
+            <div class="form-group">
+                <label for="disease_id">Your condition</label>
+                <select id="disease_id" name="disease_id" aria-describedby="condition-help">
+                    <option value="none"{% if user.disease is null %} selected{% endif %}>None — no condition-specific suggestions saved</option>
+                    {% for d in diseases %}
+                        <option value="{{ d.id }}"{% if user.disease and user.disease.id == d.id %} selected{% endif %}>
+                            {{ d.label }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <p id="condition-help" class="form-help" style="margin-top: 8px; font-size: 0.9rem; color: #606c38;">
+                    Choosing “none” clears your saved condition and hides the suggestion panels elsewhere.
+                </p>
+            </div>
+            <button type="submit" class="form-btn">Save</button>
+        </form>
+
+<hr style="margin: 28px 0; border: none; border-top: 1px solid rgba(40, 54, 24, 0.15);">
+
+        {% if user.disease is not null %}
+            <h3 style="margin-bottom: 12px; color:#283618;">Intake suggestions for {{ user.disease.label }}</h3>
+            <p style="margin-bottom: 16px; font-size: 0.92rem;">
+                {{ user.disease.description|default('')|nl2br }}
+            </p>
+
+            {% if user.disease.intakeSuggestions is not empty %}
+                <div class="food-panel" style="padding: 16px;">
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        {% for key, text in user.disease.intakeSuggestions %}
+                            <li style="margin-bottom: 10px;">
+                                <strong>{{ nutrient_labels[key]|default(key|replace({'_':' '})|title) }}:</strong>
+                                {{ text }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <p style="color: #606c38;">No specific intake suggestions for this condition.</p>
+            {% endif %}
+        {% else %}
+            <p style="color: #606c38; font-style: italic;">No condition selected, choose one above and save to see dietary suggestions.</p>
+        {% endif %}
+    </div>
+{% endblock %}

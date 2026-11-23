@@ -1,0 +1,79 @@
+{% extends 'auth_base.html.twig' %}
+
+{% block title %}Login - MicroVisor{% endblock %}
+
+{% block body %}
+<main class="auth-shell">
+    <div class="form-container">
+        <h2 class="form-title">Login</h2>
+        <p class="form-subtitle">Login to access your micronutrient dashboard</p>
+
+            {% if error is defined and error %}
+                <p class="form-error">{{ error }}</p>
+            {% endif %}
+
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-input">
+                <input type="password" id="password" name="password">
+                <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" style="display:none;"/>
+                        <circle class="eye-open" cx="12" cy="12" r="3" style="display:none;"/>
+                        <path class="eye-closed" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path class="eye-closed" d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line class="eye-closed" x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+            <button type="submit" class="form-btn">Login</button>
+            {# Link to forgot password page #}
+            <p style="text-align: center; margin-top: 12px;">
+                <a href="{{ path('app_forgot_password') }}" style="color: #606c38; font-weight: 600;">Forgot your password?</a>
+            </p>
+
+        </form>
+    </div>
+</main>
+
+
+<script>
+    /**
+     *Toggles password field visibility between dots and plain text.
+     *
+     * When called, this function switches the password input field between two states:
+     * - Hidden state: type="password" with a closed eye icon
+     * - Visible state: type="text" with an open eye icon
+     *
+     *  The eye icon consists of SVG paths with two CSS classes:
+     * - ".eye-open" paths are shown when password is visible
+     * - ".eye-closed" paths are shown when password is hidden
+     *
+     *  @param {string} fieldId - The HTML id attribute of the password input field to toggle
+     *
+     */
+    function togglePassword(fieldId) {
+        const input = document.getElementById(fieldId);
+        const btn = input.closest('.password-input');
+        const openParts = btn.querySelectorAll('.eye-open');
+        const closedParts = btn.querySelectorAll('.eye-closed');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            openParts.forEach(p => p.style.display = 'inline');
+            closedParts.forEach(p => p.style.display = 'none');
+        } else {
+            input.type = 'password';
+            openParts.forEach(p => p.style.display = 'none');
+            closedParts.forEach(p => p.style.display = 'inline');
+        }
+    }
+    </script>
+{% endblock %}

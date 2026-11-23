@@ -1,0 +1,11 @@
+<li class="cal-event cal-event--with-actions" title="FoodData Central · FDC id {{ intake.srcId }}">
+    <div class="cal-event-main">
+        <span class="cal-event-time">{{ intake.createdAt|date('H:i') }}</span>
+        <span class="cal-event-body">
+            {{ intake.amount }} {{ intake.unitValue }}
+            ·
+            {{ intake.srcName ?? ('FDC #' ~ intake.srcId) }}
+        </span>
+    </div>
+    <a href="{{ path('app_food_intake_edit', { id: intake.id, view: viewName, date: intake.createdAt|date('Y-m-d'), show_weekends: showWeekends ? '1' : '0' }) }}" class="cal-event-edit">Edit</a>
+</li>

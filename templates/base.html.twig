@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}MicroVisor{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+        {% block stylesheets %}
+        {% endblock %}
+    </head>
+    <body>
+       <header class="main-header">
+           <h1>MicroVisor</h1>
+       </header>
+
+       <div class="app-container">
+            <nav class="sidebar">
+                <a href="{{ path('app_home') }}" class="sidebar-link">Dashboard</a>
+                <a href="{{ path('app_profile') }}" class="sidebar-link">Profile</a>
+                <a href="{{ path('app_conditions') }}" class="sidebar-link">Conditions</a>
+                <a href="{{ path('app_bloodtest') }}" class="sidebar-link">Bloodtest</a>
+                <a href="{{ path('app_logout') }}" class="sidebar-link logout-link">Logout</a>
+            </nav>
+
+            <main class="content">
+                {% block body %}{% endblock %}
+            </main>
+       </div>
+
+       {% block javascripts %}{% endblock %}
+    </body>
+</html>

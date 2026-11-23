@@ -1,0 +1,262 @@
+{% extends 'base.html.twig' %}
+{% block title %}Profile - MicroVisor{% endblock %}
+{% block body %}
+    <h2 class="dash-welcome">Profile</h2>
+    <div class="form-container form-container--wide" style="max-width: 860px;">
+        <p class="form-subtitle" style="text-align:left;">
+            Update your personal info. Recommendations update automatically from your saved values.
+        </p>
+        {% if error %}
+            <p class="form-error">{{ error }}</p>
+        {% endif %}
+        {% if success %}
+            <p class="form-success">{{ success }}</p>
+        {% endif %}
+
+          
+
+        <form method="POST" action="{{ path('app_profile') }}" novalidate>
+            <input type="hidden" name="_action" value="profile">
+
+
+            <div class="form-row form-row--two">
+                <div class="form-group">
+                    <label for="firstName">First name</label>
+                    <input type="text" id="firstName" name="firstName" value="{{ user.firstName }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last name</label>
+                    <input type="text" id="lastName" name="lastName" value="{{ user.lastName }}" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+            <div class="form-row form-row--metrics">
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" min="1" max="120" inputmode="numeric" value="{{ user.age }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight</label>
+                    <div class="field-with-unit">
+                        <input type="number" id="weight" name="weight" step="0.1" min="0" inputmode="decimal" value="{{ user.weightDisplayValue }}" required>
+                        <select id="weightUnit" name="weightUnit" aria-label="Weight unit">
+                            <option value="kg" {% if user.weightUnit == 'kg' %}selected{% endif %}>kg</option>
+                            <option value="lbs" {% if user.weightUnit == 'lbs' %}selected{% endif %}>lbs</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                <label>Height</label>
+                <div class="field-with-unit" data-height-wrapper>
+                    <input
+                        type="number" id="height" name="height"
+                        step="0.1" min="0" inputmode="decimal"
+                        value="{{ user.height }}"
+                        data-height-cm
+                    >
+
+                    <div class="field-with-unit__ft" hidden data-height-ft-group style="display:flex; gap:6px; flex:1;">
+                        <input
+                            type="number" id="heightFt" name="heightFt"
+                            step="1" min="0" inputmode="numeric"
+                            placeholder="ft"
+                            data-height-ft
+                            value="{{ user.heightFeetPart }}"
+                        >
+                        <input
+                            type="number" id="heightIn" name="heightIn"
+                            step="1" min="0" max="11" inputmode="numeric"
+                            placeholder="in"
+                            data-height-in
+                            value="{{ user.heightInchesPart }}"
+                        >
+                    </div>
+
+                    <select id="heightUnit" name="heightUnit" aria-label="Height unit" data-height-unit>
+                        <option value="cm" {% if user.heightUnit == 'cm' %}selected{% endif %}>cm</option>
+                        <option value="ft" {% if user.heightUnit == 'ft' %}selected{% endif %}>ft</option>
+                    </select>
+                </div>
+            </div>
+
+
+
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
+                    <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                    <option value="other" {% if user.gender == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <button type="submit" class="form-btn">Save profile</button>
+        </form>
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid rgba(40, 54, 24, 0.15);">
+        <h3 style="margin-bottom: 12px; color:#283618;">Daily goals</h3>
+        <p class="form-subtitle" style="text-align:left;">
+            Edit these targets to customize the progress bars. Reset returns them to the calculated recommendations from your profile.
+        </p>
+
+        {% set pretty = {
+            'vitamin_a':'Vitamin A',
+            'vitamin_c':'Vitamin C',
+            'vitamin_d':'Vitamin D',
+            'vitamin_e':'Vitamin E',
+            'vitamin_k':'Vitamin K',
+            'thiamin':'Thiamin (B1)',
+            'riboflavin':'Riboflavin (B2)',
+            'niacin':'Niacin (B3)',
+            'vitamin_b6':'Vitamin B6',
+            'folate':'Folate',
+            'vitamin_b12':'Vitamin B12',
+            'pantothenic_acid':'Pantothenic acid (B5)',
+            'biotin':'Biotin (B7)',
+            'choline':'Choline',
+            'calcium':'Calcium',
+            'chloride':'Chloride',
+            'chromium':'Chromium',
+            'fluoride':'Fluoride',
+            'iron':'Iron',
+            'magnesium':'Magnesium',
+            'manganese':'Manganese',
+            'potassium':'Potassium',
+            'zinc':'Zinc'
+        } %}
+
+        <div data-goals-display>
+            <div class="food-panel" style="padding: 16px;">
+                <h3 style="margin: 0 0 10px;">Macros</h3>
+                <p style="margin: 0;">
+                    <strong>Carbs:</strong> {{ recs.macros.carbs_g.min }}–{{ recs.macros.carbs_g.max }} g/day<br>
+                    <strong>Fiber:</strong> {{ recs.macros.fiber_g }} g/day<br>
+                    <strong>Protein:</strong> {{ recs.macros.protein_g }} g/day<br>
+                    <strong>Fat:</strong> {{ recs.macros.fat_g.min }}–{{ recs.macros.fat_g.max }} g/day
+                </p>
+            </div>
+            <div class="food-panel" style="padding: 16px; margin-top: 16px;">
+                <h3 style="margin: 0 0 10px;">Vitamins &amp; minerals</h3>
+                <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                    {% for key, item in recs.micronutrients %}
+                        <div style="padding: 10px 12px; border: 1px solid rgba(221, 161, 94, 0.55); border-radius: 10px; background: #faf8f3;">
+                            <div style="font-weight: 700; color:#283618; margin-bottom: 4px;">
+                                {{ pretty[key]|default(key|replace({'_':' '})|title) }}
+                            </div>
+                            <div style="color:#333;">
+                                {{ item.value }} {{ item.unit }}/day
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="button" class="form-btn" data-goals-edit style="margin-top:16px;">Edit daily goals</button>
+        </div>
+
+        <form method="POST" action="{{ path('app_profile') }}" novalidate hidden data-goals-form>
+            <input type="hidden" name="_action" value="goals">
+
+            <div class="food-panel" style="padding: 16px;">
+                <h3 style="margin: 0 0 10px;">Macros</h3>
+                <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                    <div class="form-group">
+                        <label for="goal-carbs-min">Carbs min (g/day)</label>
+                        <input type="number" id="goal-carbs-min" name="macros[carbs_g][min]" min="0" step="1" value="{{ recs.macros.carbs_g.min }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-carbs-max">Carbs max (g/day)</label>
+                        <input type="number" id="goal-carbs-max" name="macros[carbs_g][max]" min="0" step="1" value="{{ recs.macros.carbs_g.max }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-fiber">Fiber (g/day)</label>
+                        <input type="number" id="goal-fiber" name="macros[fiber_g]" min="0" step="1" value="{{ recs.macros.fiber_g }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-protein">Protein (g/day)</label>
+                        <input type="number" id="goal-protein" name="macros[protein_g]" min="0" step="1" value="{{ recs.macros.protein_g }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-fat-min">Fat min (g/day)</label>
+                        <input type="number" id="goal-fat-min" name="macros[fat_g][min]" min="0" step="1" value="{{ recs.macros.fat_g.min }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal-fat-max">Fat max (g/day)</label>
+                        <input type="number" id="goal-fat-max" name="macros[fat_g][max]" min="0" step="1" value="{{ recs.macros.fat_g.max }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="food-panel" style="padding: 16px; margin-top: 16px;">
+                <h3 style="margin: 0 0 10px;">Vitamins &amp; minerals</h3>
+                <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                    {% for key, item in recs.micronutrients %}
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="goal-{{ key }}">{{ pretty[key]|default(key|replace({'_':' '})|title) }} ({{ item.unit }}/day)</label>
+                            <input type="number" id="goal-{{ key }}" name="micronutrients[{{ key }}]" min="0" step="any" value="{{ item.value }}" required>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="form-btn">Save daily goals</button>
+            <button type="submit" class="form-btn" name="resetGoals" value="1" style="margin-left:8px; background:#bc6c25;">Reset to calculated</button>
+            <button type="button" class="form-btn" data-goals-cancel style="margin-left:8px; background:#7a7a7a;">Cancel</button>
+        </form>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+  var unitSel = document.querySelector('[data-height-unit]');
+  var cmInput = document.querySelector('[data-height-cm]');
+  var ftGroup = document.querySelector('[data-height-ft-group]');
+  if (!unitSel || !cmInput || !ftGroup) return;
+
+  function applyUnit() {
+    if (unitSel.value === 'ft') {
+      cmInput.hidden = true;
+      cmInput.required = false;
+      ftGroup.hidden = false;
+      ftGroup.style.display = 'flex';
+    } else {
+      cmInput.hidden = false;
+      cmInput.required = true;
+      ftGroup.hidden = true;
+      ftGroup.style.display = 'none';
+    }
+  }
+
+  unitSel.addEventListener('change', applyUnit);
+  applyUnit();
+})();
+</script>
+
+<script>
+(function () {
+  var display = document.querySelector('[data-goals-display]');
+  var form = document.querySelector('[data-goals-form]');
+  var editBtn = document.querySelector('[data-goals-edit]');
+  var cancelBtn = document.querySelector('[data-goals-cancel]');
+  if (!display || !form || !editBtn) return;
+
+  editBtn.addEventListener('click', function () {
+    display.hidden = true;
+    form.hidden = false;
+  });
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function () {
+      form.hidden = true;
+      display.hidden = false;
+    });
+  }
+})();
+</script>
+
+{% endblock %}

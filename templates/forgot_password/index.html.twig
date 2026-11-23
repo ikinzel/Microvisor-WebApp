@@ -1,0 +1,75 @@
+{% extends 'auth_base.html.twig' %}
+
+{% block title %}Reset Password - MicroVisor{% endblock %}
+
+{% block body %}
+<main class="auth-shell">
+    <div class="form-container">
+        <h2 class="form-title">Reset Password</h2>
+        <p class="form-subtitle">Enter your email and choose a new password</p>
+
+        {% if error is defined and error %}
+            <p class="form-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="/forgot-password" novalidate>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email">
+            </div>
+
+            <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" name="newPassword">
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword">
+            </div>
+
+            <button type="submit" class="form-btn">Reset Password</button>
+        </form>
+
+        <a href="{{ path('app_login') }}" class="form-btn" style="text-align: center; text-decoration: none; display: block; margin-top: 10px;">Back to Login</a>
+    </div>
+</main>
+    <script>
+
+        /**
+         * Validates password reset form before submission.
+         *
+         * This validation runs on the client side before sending data to the server.
+         * It checks for:
+         * - Email is not empty and contains @ symbol
+         * - New password is not empty and at least 6 characters
+         * - Passwords match
+         *
+         * If validation fails, errors are displayed above the form and form submission is prevented.
+         * The server (ForgotPasswordController) will perform its own validation as a security measure.
+         */
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const email = document.getElementById('email').value.trim();
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        let errors = [];
+
+        if (!email) errors.push('Email is required');
+        else if (!email.includes('@')) errors.push('Please use a valid email format');
+        if (!newPassword) errors.push('New password is required');
+        else if (newPassword.length < 6) errors.push('Password must be at least 6 characters');
+        if (newPassword !== confirmPassword) errors.push('Passwords do not match');
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            let errorBox = document.querySelector('.form-error');
+            if (!errorBox) {
+                errorBox = document.createElement('p');
+                errorBox.className = 'form-error';
+                document.querySelector('.form-subtitle').after(errorBox);
+            }
+            errorBox.innerHTML = errors.join('<br>');
+        }
+    });
+    </script>
+{% endblock %}

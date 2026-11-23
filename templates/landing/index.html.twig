@@ -1,0 +1,16 @@
+{% extends 'auth_base.html.twig' %}
+
+{% block title %}MicroVisor{% endblock %}
+
+{% block body %}
+    <div class="landing-container">
+        <div class="landing-hero" role="region" aria-labelledby="landing-title">
+            <h2 id="landing-title" class="landing-headline">MicroVisor</h2>
+            <p class="landing-tagline">Track micronutrients and food intake in one clear dashboard.</p>
+        </div>
+        <div class="landing-actions">
+            <a href="/login" class="landing-btn login-btn">Log In</a>
+            <a href="/register" class="landing-btn signup-btn">Sign Up</a>
+        </div>
+    </div>
+{% endblock %}

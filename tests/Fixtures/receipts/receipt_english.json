@@ -1,0 +1,85 @@
+{
+  "description": "Whole Foods Market Tribeca (US) — English receipt lines",
+  "items": [
+    {
+      "name": "365 OG FIESTA SHRED",
+      "usdaSearch": "shredded mexican cheese blend",
+      "weight": null
+    },
+    {
+      "name": "OG CILANTRO BUNCH",
+      "usdaSearch": "cilantro fresh",
+      "weight": null
+    },
+    {
+      "name": "365 OG ROMAINE HEART",
+      "usdaSearch": "romaine lettuce hearts",
+      "weight": null
+    },
+    {
+      "name": "3BC LIGHT ROAST",
+      "usdaSearch": "ground coffee light roast",
+      "weight": null
+    },
+    {
+      "name": "ROTI CKN PLN",
+      "usdaSearch": "rotisserie chicken plain",
+      "weight": null
+    },
+    {
+      "name": "365 BALSAMIC VINEGAR",
+      "usdaSearch": "balsamic vinegar",
+      "weight": null
+    },
+    {
+      "name": "365 OG BLACK BEAN",
+      "usdaSearch": "black beans canned",
+      "weight": null
+    },
+    {
+      "name": "CV LIMES",
+      "usdaSearch": "limes raw",
+      "weight": null
+    },
+    {
+      "name": "HASS AVOCADOS",
+      "usdaSearch": "avocado hass raw",
+      "weight": null
+    },
+    {
+      "name": "365 OG WW TORTILLA",
+      "usdaSearch": "whole wheat tortillas",
+      "weight": null
+    },
+    {
+      "name": "CV BANANA",
+      "usdaSearch": "bananas raw",
+      "weight": { "value": 1.85, "unit": "lb" }
+    },
+    {
+      "name": "365 L NON GMO BRW EGG",
+      "usdaSearch": "chicken eggs brown large",
+      "weight": null
+    },
+    {
+      "name": "OG GALA APPLES",
+      "usdaSearch": "gala apples raw",
+      "weight": { "value": 1.59, "unit": "lb" }
+    },
+    {
+      "name": "CV SWEET ONION",
+      "usdaSearch": "sweet onion raw",
+      "weight": { "value": 0.52, "unit": "lb" }
+    },
+    {
+      "name": "CV CHERRY TOMATO",
+      "usdaSearch": "cherry tomatoes raw",
+      "weight": null
+    },
+    {
+      "name": "FRIEN SOUR CREAM",
+      "usdaSearch": "sour cream",
+      "weight": null
+    }
+  ]
+}
